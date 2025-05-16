@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build ./2-deploy-and-data/MunsonPickles/MunsonPickles.Web/MunsonPickles.Web.csproj --configuration Release
+        run: dotnet build ./3-blob-storage/MunsonPickles/MunsonPickles.Web/MunsonPickles.Web.csproj --configuration Release
 
       - name: dotnet publish
         run: dotnet publish ./2-deploy-and-data/MunsonPickles/MunsonPickles.Web/MunsonPickles.Web.csproj -c Release -o "${{env.DOTNET_ROOT}}/app-webreview-web-dev-001"
