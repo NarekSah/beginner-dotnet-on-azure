@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-var sqlConnection = builder.Configuration["ConnectionStrings:SqlDb:DotAzure"];
-var storageConnection = builder.Configuration["ConnectionStrings:Storage:DotAzure"];
+var sqlConnection = builder.Configuration["ConnectionStrings:WebReview:SqlDb"];
+var storageConnection = builder.Configuration["ConnectionStrings:WebReview:Storage"];
 
 builder.Services.AddSqlServer<PickleDbContext>(sqlConnection, options => options.EnableRetryOnFailure());
 

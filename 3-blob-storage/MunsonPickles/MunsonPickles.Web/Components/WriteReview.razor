@@ -18,8 +18,8 @@
             </div>
             <div class="modal-body">                                
                 <textarea class="form-control" rows="10" 
-                    placeholder="Leave us a review, we'll ❤️ it and we'll ❤️ you!"
-                    @bind="reviewText"/>
+                placeholder="Leave us a review, we'll ❤️ it and we'll ❤️ you!"
+                @bind="reviewText"/>
                 @if (showUpload)
                 {
                     <InputFile id="hi" OnChange="@LoadFiles" />
@@ -49,6 +49,7 @@
 
     bool showUpload = true;
     bool uploadSuccessful = false;
+    Uri? containerPath;
 
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
@@ -57,6 +58,8 @@
         // immediately save to blob storage
 
         var containerClient = blobService.GetBlobContainerClient(loggedInUser);
+
+        containerPath = containerClient.Uri;
 
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
@@ -75,13 +78,12 @@
     }
 
     async Task SaveReview()
-    {
-        var cdn = configuration["Cdn:Endpoint"];
+    {       
         List<string>? photoUrls = new();
 
-        if (loadedPhoto)
+        if (loadedPhoto && containerPath != null)
         {
-            photoUrls.Add($"{cdn}/{loggedInUser}/{newBlobName}");            
+            photoUrls.Add($"{containerPath.AbsoluteUri}/{newBlobName}");            
         }
 
         await reviewService.AddReview(reviewText, photoUrls, Product.Id);
