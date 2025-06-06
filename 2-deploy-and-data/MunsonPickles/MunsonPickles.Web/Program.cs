@@ -1,17 +1,22 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Azure.Identity;
+
 using MunsonPickles.Web.Data;
 using MunsonPickles.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsProduction())
+{
+    builder.Configuration.AddAzureKeyVault(
+        new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
+        new DefaultAzureCredential());
+}
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-var sqlConnection = builder.Configuration["ConnectionStrings:WebReview:SqlDb"];
-
-builder.Services.AddSqlServer<PickleDbContext>(sqlConnection, options => options.EnableRetryOnFailure());
+builder.Services.AddDBContext(builder.Configuration);
 
 builder.Services.AddTransient<ProductService>();
 builder.Services.AddTransient<ReviewService>();
