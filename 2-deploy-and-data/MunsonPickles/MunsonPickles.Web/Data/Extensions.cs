@@ -1,5 +1,4 @@
-﻿using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace MunsonPickles.Web.Data;
 
@@ -19,13 +18,12 @@ public static class Extensions
 
     public static void AddDBContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var client = new SecretClient(new Uri($"https://{configuration["KeyVaultName"]}.vault.azure.net/"), new DefaultAzureCredential());
+        // Get the connection string
+        var connectionString = configuration.GetConnectionString("WebReviewSqlDb");
 
-        var sqlConnection = client.GetSecret("WebReviewSqlDb").Value.Value;
-
-        //var sqlConnection = configuration["ConnectionStrings:WebReview:SqlDb"];
-
-        services.AddSqlServer<PickleDbContext>(sqlConnection, options => options.EnableRetryOnFailure());
+        // Register DbContext
+        services.AddDbContext<PickleDbContext>(options =>
+            options.UseSqlServer(connectionString));
 
     }
 }

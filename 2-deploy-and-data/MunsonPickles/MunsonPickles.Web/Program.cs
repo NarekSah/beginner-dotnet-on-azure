@@ -5,16 +5,18 @@ using MunsonPickles.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Environment.IsProduction())
-{
-    builder.Configuration.AddAzureKeyVault(
-        new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
-        new DefaultAzureCredential());
-}
-
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+//builder.Services.AddDBContext(builder.Configuration);
+
+if (!builder.Environment.IsDevelopment())
+{
+    // Load secrets from Azure Key Vault in production
+    var keyVaultEndpoint = new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/");
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+}
 
 builder.Services.AddDBContext(builder.Configuration);
 
