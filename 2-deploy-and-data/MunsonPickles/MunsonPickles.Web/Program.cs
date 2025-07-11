@@ -1,5 +1,6 @@
 using Azure.Identity;
 
+using MunsonPickles.Events;
 using MunsonPickles.Web.Data;
 using MunsonPickles.Web.Services;
 
@@ -22,6 +23,8 @@ builder.Services.AddDBContext(builder.Configuration);
 
 builder.Services.AddTransient<ProductService>();
 builder.Services.AddTransient<ReviewService>();
+
+builder.Services.AddScoped<IEventGridPublisher, EventGridPublisher>();
 
 var app = builder.Build();
 

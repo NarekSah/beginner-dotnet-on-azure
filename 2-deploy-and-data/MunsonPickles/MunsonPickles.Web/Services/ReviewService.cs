@@ -3,17 +3,20 @@ using MunsonPickles.Web.Models;
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
+using MunsonPickles.Events;
 
 namespace MunsonPickles.Web.Services;
 
 public class ReviewService
 {
 	private readonly PickleDbContext pickleContext;
+    private readonly IEventGridPublisher _eventGridPublisher;
 
-	public ReviewService(PickleDbContext context)
+    public ReviewService(PickleDbContext context, IEventGridPublisher eventGridPublisher)
 	{
 		pickleContext = context;
-	}
+        _eventGridPublisher = eventGridPublisher;
+    }
 
 	public async Task AddReview(string reviewText, int productId)
 	{
@@ -40,6 +43,16 @@ public class ReviewService
             product.Reviews.Add(review);
 
             await pickleContext.SaveChangesAsync();
+
+            var reviewEvent = new ReviewEvent
+            {
+                Id = review.Id,
+                ProductId = productId,
+                HasPhotos = review.Photos?.Any() ?? false,
+                UserId = userId
+            };
+
+            await _eventGridPublisher.PublishEventAsync(reviewEvent);
         }
 		catch (Exception ex)
 		{
