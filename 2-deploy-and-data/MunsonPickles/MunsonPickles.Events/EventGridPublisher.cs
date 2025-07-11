@@ -7,7 +7,7 @@ namespace MunsonPickles.Events
     {
         // Event Grid Client
         private readonly string topicEndpoint = "https://ct-webreview-mail-we-dev.westeurope-1.eventgrid.azure.net/api/events";
-        private readonly string topicKey = "CdGOHDWgYzC86qYgrDOKhT8P1cm1v0z1gJ16pk9xNgNdIb687SwzJQQJ99BGAC5RqLJXJ3w3AAABAZEG9dTV";       
+        private readonly string topicKey = Environment.GetEnvironmentVariable("EVENTGRID_TOPIC_KEY");
 
         public async Task PublishEventAsync<T>(T eventData) where T : class
         {
