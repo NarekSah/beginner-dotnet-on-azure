@@ -1,30 +1,32 @@
-name: Deploy Azure Function App
-
-on:
-  push:
-    branches:
-      - main  # or your default branch
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js (or Python/.NET depending on your runtime)
-        uses: actions/setup-node@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
         with:
-          node-version: '18'  # adjust based on your app
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./2-deploy-and-data/SendEmailOnReview/SendEmailOnReview.csproj
+
+      - name: Build and publish
+        run: |
+          dotnet publish ./2-deploy-and-data/SendEmailOnReview/SendEmailOnReview.csproj \
+            --configuration Release \
+            --output ./publish_output
 
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Function App
+      - name: Deploy to Azure Functions
         uses: azure/functions-action@v1
         with:
           app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
-          package: './2-deploy-and-data/MunsonPickles/SendEmailOnReview'
+          package: ./publish_output
