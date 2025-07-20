@@ -8,10 +8,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-     id-token: write
-     contents: read
-
 
     steps:
       - name: Checkout Code
@@ -23,11 +19,9 @@ jobs:
           node-version: '18'  # adjust based on your app
 
       - name: Azure Login
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DE20E7CA729145738E46CC68031137F1 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0095A8FED5CE46E5BF6583FFA9EDA9C6 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F5519533D983487BBD8228F55A0D0F2F }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy Function App
         uses: azure/functions-action@v1
