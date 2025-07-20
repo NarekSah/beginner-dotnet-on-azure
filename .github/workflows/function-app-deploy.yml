@@ -19,11 +19,11 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore ./2-deploy-and-data/SendEmailOnReview/SendEmailOnReview.csproj
+        run: dotnet restore ./2-deploy-and-data/MunsonPickles/SendEmailOnReview/SendEmailOnReview.csproj
 
       - name: Build and publish
         run: |
-          dotnet publish ./2-deploy-and-data/SendEmailOnReview/SendEmailOnReview.csproj \
+          dotnet publish ./2-deploy-and-data/MunsonPickles/SendEmailOnReview/SendEmailOnReview.csproj \
             --configuration Release \
             --output ./publish_output
 
