@@ -67,7 +67,7 @@ public class ReviewService
                 _logger.LogInformation("Successfully saved review {ReviewId} for product {ProductId}", 
                     review.Id, productId);
 
-                var reviewEvent = new ReviewEvent
+                var reviewEvent = new MunsonPickles.Events.ReviewEvent
                 {
                     Id = review.Id,
                     ProductId = productId,
