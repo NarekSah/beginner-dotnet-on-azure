@@ -1,4 +1,4 @@
-﻿namespace MunsonPickles.Web.Models
+namespace MunsonPickles.Events
 {
     public class ReviewEvent
     {
