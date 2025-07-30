@@ -9,59 +9,101 @@ namespace MunsonPickles.Web.Services;
 
 public class ReviewService
 {
-	private readonly PickleDbContext pickleContext;
+	private readonly PickleDbContext _pickleContext;
     private readonly IEventGridPublisher _eventGridPublisher;
+    private readonly LoggingService _loggingService;
+    private readonly ILogger<ReviewService> _logger;
 
-    public ReviewService(PickleDbContext context, IEventGridPublisher eventGridPublisher)
+    public ReviewService(
+        PickleDbContext context, 
+        IEventGridPublisher eventGridPublisher,
+        LoggingService loggingService,
+        ILogger<ReviewService> logger)
 	{
-		pickleContext = context;
+		_pickleContext = context;
         _eventGridPublisher = eventGridPublisher;
+        _loggingService = loggingService;
+        _logger = logger;
     }
 
 	public async Task AddReview(string reviewText, int productId)
 	{
         string userId = "matt"; // this will get changed out when we add auth
+        
+        _logger.LogInformation("Adding review for product {ProductId} by user {UserId}", productId, userId);
 
         try
 		{
-            // create the new review
-            Review review = new()
+            await _loggingService.LogExecutionTimeAsync("AddReview", async () => 
             {
-                Date = DateTime.Now,                
-                Text = reviewText,
-                UserId = userId
-            };
+                // create the new review
+                Review review = new()
+                {
+                    Date = DateTime.Now,                
+                    Text = reviewText,
+                    UserId = userId
+                };
 
-            Product product = await pickleContext.Products.FindAsync(productId);
+                _logger.LogDebug("Looking up product with ID {ProductId}", productId);
+                Product? product = await _pickleContext.Products.FindAsync(productId);
 
-            if (product is null)
-                return;
+                if (product is null)
+                {
+                    _logger.LogWarning("Product with ID {ProductId} not found", productId);
+                    return false;
+                }
 
-            if (product.Reviews is null)
-                product.Reviews = new List<Review>();
+                if (product.Reviews is null)
+                {
+                    _logger.LogDebug("Initializing review collection for product {ProductId}", productId);
+                    product.Reviews = new List<Review>();
+                }
 
-            product.Reviews.Add(review);
+                product.Reviews.Add(review);
+                
+                _logger.LogDebug("Saving review to database");
+                await _pickleContext.SaveChangesAsync();
+                
+                _logger.LogInformation("Successfully saved review {ReviewId} for product {ProductId}", 
+                    review.Id, productId);
 
-            await pickleContext.SaveChangesAsync();
+                var reviewEvent = new ReviewEvent
+                {
+                    Id = review.Id,
+                    ProductId = productId,
+                    HasPhotos = review.Photos?.Any() ?? false,
+                    UserId = userId
+                };
 
-            var reviewEvent = new ReviewEvent
-            {
-                Id = review.Id,
-                ProductId = productId,
-                HasPhotos = review.Photos?.Any() ?? false,
-                UserId = userId
-            };
-
-            await _eventGridPublisher.PublishEventAsync(reviewEvent);
+                _logger.LogDebug("Publishing event for review {ReviewId}", review.Id);
+                await _eventGridPublisher.PublishEventAsync(reviewEvent);
+                _logger.LogInformation("Event published for review {ReviewId}", review.Id);
+                
+                return true;
+            });
         }
 		catch (Exception ex)
 		{
-			System.Diagnostics.Debug.WriteLine(ex);
+            _logger.LogError(ex, "Error adding review for product {ProductId}: {ErrorMessage}", 
+                productId, ex.Message);
 		}		
 	}
 
 	public async Task<IEnumerable<Review>> GetReviewsForProduct(int productId)
 	{
-		return await pickleContext.Reviews.AsNoTracking().Where(r => r.Product.Id == productId).ToListAsync();
+        _logger.LogInformation("Getting reviews for product {ProductId}", productId);
+        
+        return await _loggingService.LogExecutionTimeAsync("GetReviewsForProduct", async () => 
+        {
+            var reviews = await _pickleContext.Reviews
+                .AsNoTracking()
+                .Where(r => r.Product.Id == productId)
+                .ToListAsync();
+                
+            _logger.LogInformation("Retrieved {ReviewCount} reviews for product {ProductId}", 
+                reviews.Count, productId);
+                
+            return reviews;
+        });
 	}
 }

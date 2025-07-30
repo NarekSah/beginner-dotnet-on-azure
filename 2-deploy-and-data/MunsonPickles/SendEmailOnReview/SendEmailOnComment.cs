@@ -14,7 +14,7 @@ namespace SendEmailOnReview
         {
             var data = eventGridEvent.Data.ToObjectFromJson<CommentData>();
 
-            var emailText = $"New comment on product {data.ProductId}:\n\n{data.CommentText}";
+            var emailText = $"New comment on product {data?.ProductId}:\n\n{data?.CommentText}";
 
             var client = new SendGrid.SendGridClient(Environment.GetEnvironmentVariable("SENDGRID_API_KEY"));
             var msg = new SendGrid.Helpers.Mail.SendGridMessage()
@@ -23,7 +23,7 @@ namespace SendEmailOnReview
                 Subject = "New Product Comment",
                 PlainTextContent = emailText
             };
-            msg.AddTo(new EmailAddress("notify@example.com"));
+            msg.AddTo(new EmailAddress("sahakian.narek@gmail.com"));
 
             var response = await client.SendEmailAsync(msg);
             log.LogInformation($"Email sent with status {response.StatusCode}");
